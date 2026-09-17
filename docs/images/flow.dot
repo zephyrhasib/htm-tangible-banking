@@ -1,0 +1,55 @@
+digraph HTM {
+  rankdir=TB;
+  bgcolor="white";
+  graph [fontname="Helvetica", pad="0.5", nodesep="0.6", ranksep="0.7", dpi=200, splines=spline];
+  node  [fontname="Helvetica", fontsize=12, shape=box, style="rounded,filled", color="#1B3A4B", fillcolor="#F7F5F1", fontcolor="#232323", penwidth=1.4, margin="0.24,0.14"];
+  edge  [fontname="Helvetica", fontsize=10.5, color="#5A5A5A", fontcolor="#5A5A5A", penwidth=1.3, arrowsize=0.85];
+
+  boot     [label="POWER ON\ndevice boots locked", fillcolor="#1B3A4B", fontcolor="white"];
+  locked   [label="LOCKED\nnothing responds", fillcolor="#FBEAE5", color="#B4482F"];
+  unlocked [label="UNLOCKED\n\"Welcome\" spoken", fillcolor="#EAF4F2", color="#2A9D8F"];
+  recip    [label="RECIPIENT SELECTED\nname spoken back", fillcolor="#EAF4F2", color="#2A9D8F"];
+  amount   [label="AMOUNT COMPOSED\nrunning total spoken after every tap", fillcolor="#EAF4F2", color="#2A9D8F"];
+  hold     [label="HOLDING CONFIRM\nring fills 0 → 12 segments over 2 s", fillcolor="#FFF4E0", color="#C97B3D"];
+  done     [label="TRANSFER COMPLETE\nsuccess + new balance spoken\nlogged to dashboard", fillcolor="#1B3A4B", fontcolor="white"];
+
+  /* main spine */
+  boot -> locked;
+  locked -> unlocked [label="  keyfob tapped", color="#2A9D8F", fontcolor="#1B7A6C", penwidth=1.8];
+  unlocked -> recip  [label="  photo card tapped", color="#2A9D8F", fontcolor="#1B7A6C", penwidth=1.8];
+  recip -> amount    [label="  denomination card tapped\n  (+1000 / +500 / +200 / +100)", color="#2A9D8F", fontcolor="#1B7A6C", penwidth=1.8];
+  amount -> hold     [label="  yellow button pressed", color="#C97B3D", fontcolor="#C97B3D", penwidth=1.8];
+  hold -> done       [label="  held 2 s — all 12 lit", color="#2A9D8F", fontcolor="#1B7A6C", penwidth=2];
+
+  /* right-side error / guard branches */
+  e1 [label="Any other card while locked\n→ red flash · \"tap your key first\"", shape=note, fillcolor="#FBEAE5", color="#B4482F", fontsize=10.5];
+  e2 [label="Denomination before recipient\n→ BLOCKED · red flash", shape=note, fillcolor="#FBEAE5", color="#B4482F", fontsize=10.5];
+  e3 [label="Tap would exceed balance\n→ REJECTED · not added", shape=note, fillcolor="#FBEAE5", color="#B4482F", fontsize=10.5];
+  e4 [label="Released before 2 s\n→ \"hold to confirm\" reminder\n(nothing is cancelled)", shape=note, fillcolor="#FFF4E0", color="#C97B3D", fontsize=10.5];
+
+  locked   -> e1 [dir=both, style=dashed, color="#B4482F", arrowhead=none, arrowtail=none];
+  unlocked -> e2 [dir=both, style=dashed, color="#B4482F", arrowhead=none, arrowtail=none];
+  amount   -> e3 [dir=both, style=dashed, color="#B4482F", arrowhead=none, arrowtail=none];
+  hold     -> e4 [dir=both, style=dashed, color="#C97B3D", arrowhead=none, arrowtail=none];
+
+  /* left-side modifiers */
+  m1 [label="✕ undo card\n→ removes last denomination\n(to zero = \"transaction cancelled\")", shape=note, fillcolor="#EAF0F4", color="#1B3A4B", fontsize=10.5];
+  m2 [label="Pink button mid-transaction\n→ clears recipient + amount\n\"transaction cancelled\"", shape=note, fillcolor="#FFF4E0", color="#C97B3D", fontsize=10.5];
+  m3 [label="Pink button with nothing selected\n→ balance spoken aloud", shape=note, fillcolor="#EAF0F4", color="#1B3A4B", fontsize=10.5];
+
+  m1 -> amount   [dir=both, style=dashed, color="#1B3A4B", arrowhead=none, arrowtail=none];
+  m2 -> recip    [dir=both, style=dashed, color="#C97B3D", arrowhead=none, arrowtail=none];
+  m3 -> unlocked [dir=both, style=dashed, color="#1B3A4B", arrowhead=none, arrowtail=none];
+
+  /* session exits */
+  done -> unlocked [label="  stays unlocked for\n  the next transaction", color="#2A9D8F", fontcolor="#1B7A6C", constraint=false];
+  x1 [label="Keyfob tapped again → LOCKED\n60 s idle → red strobe (last 5 s) → LOCKED", shape=note, fillcolor="#FBEAE5", color="#B4482F", fontsize=10.5];
+  unlocked -> x1 [style=dashed, color="#B4482F", arrowhead=none, constraint=false];
+  x1 -> locked  [style=dashed, color="#B4482F", constraint=false];
+
+  {rank=same; locked; e1;}
+  {rank=same; unlocked; e2; m3;}
+  {rank=same; recip; m2;}
+  {rank=same; amount; e3; m1;}
+  {rank=same; hold; e4;}
+}

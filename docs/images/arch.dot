@@ -1,0 +1,48 @@
+digraph ARCH {
+  rankdir=TB;
+  bgcolor="white";
+  graph [fontname="Helvetica", pad="0.5", nodesep="0.35", ranksep="0.75", dpi=200, compound=true];
+  node  [fontname="Helvetica", fontsize=11.5, shape=box, style="rounded,filled", color="#1B3A4B", fillcolor="#F7F5F1", fontcolor="#232323", penwidth=1.3, margin="0.2,0.12"];
+  edge  [fontname="Helvetica", fontsize=10, color="#5A5A5A", fontcolor="#5A5A5A", penwidth=1.3, arrowsize=0.8];
+
+  subgraph cluster_in {
+    label="PHYSICAL INPUT"; fontname="Helvetica-Bold"; fontsize=12; color="#C97B3D"; fontcolor="#C97B3D"; style="rounded,dashed"; margin=14;
+    rfid  [label="MFRC522 RFID reader\n13.56 MHz · SPI\nSS 5 · SCK 18 · MOSI 23 · MISO 19 · RST 22"];
+    cards [label="RFID tokens\n5 recipient photo cards\n4 denomination cards\n1 undo card · 1 keyfob", fillcolor="#FFF4E0", color="#C97B3D"];
+    ybtn  [label="Yellow confirm button\nGPIO 15 · INPUT_PULLUP"];
+    pbtn  [label="Pink balance / cancel button\nGPIO 13 · INPUT_PULLUP"];
+  }
+
+  esp [label="ESP32-WROOM-32\n\nfinite-state machine\nUID lookup · forcing functions\nbalance validation · idle timeout\n\nevery state change also emits\nEVT: line over USB serial", fillcolor="#1B3A4B", fontcolor="white", color="#1B3A4B", fontsize=12, margin="0.3,0.2"];
+
+  subgraph cluster_out {
+    label="PHYSICAL OUTPUT"; fontname="Helvetica-Bold"; fontsize=12; color="#2A9D8F"; fontcolor="#2A9D8F"; style="rounded,dashed"; margin=14;
+    df  [label="DFPlayer Mini (MP3-TF-16P)\nUART2 · RX 16 · TX 17\n43 Bangla voice + SFX tracks on microSD"];
+    spk [label="3 W 8 Ω speaker", fillcolor="#EAF4F2", color="#2A9D8F"];
+    ls  [label="74HCT125 level shifter\n3.3 V → 5 V data"];
+    ring [label="WS2812B 12-LED ring\nGPIO 4 → shifter → DI\nhold progress · success · error · idle strobe", fillcolor="#EAF4F2", color="#2A9D8F"];
+  }
+
+  subgraph cluster_viz {
+    label="VISUALIZATION LAYER  (MacBook, USB-tethered)"; fontname="Helvetica-Bold"; fontsize=12; color="#1B3A4B"; fontcolor="#1B3A4B"; style="rounded,dashed"; margin=14;
+    bridge [label="bridge.py\npyserial · parses EVT: lines\nmaintains live state"];
+    db     [label="SQLite  htm_ledger.db\ncurrent_state (1 row)\ntransactions (session log)", fillcolor="#EAF0F4"];
+    flask  [label="app.py  (Flask, :5001)\n/api/state JSON\nserves photos + page"];
+    web    [label="Browser dashboard\n12-segment ring twin · yellow button\nrecipient stage · token stack\ntoasts · idle alarm · success overlay\npolls every 200 ms", fillcolor="#EAF4F2", color="#2A9D8F"];
+  }
+
+  cards -> rfid [label="tap", style=dashed];
+  rfid -> esp   [label="UID"];
+  ybtn -> esp;
+  pbtn -> esp;
+
+  esp -> df   [label="play(track)"];
+  df  -> spk;
+  esp -> ls   [label="pixel data"];
+  ls  -> ring;
+
+  esp -> bridge [label="USB serial 9600\nEVT:type=…;key=val", color="#C97B3D", fontcolor="#C97B3D", penwidth=1.8];
+  bridge -> db  [label="write"];
+  db -> flask   [label="read"];
+  flask -> web  [label="HTTP / JSON"];
+}
