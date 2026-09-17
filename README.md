@@ -50,6 +50,14 @@ Every step is confirmed aloud in Bangla. A dedicated **✕ undo card** removes t
 
 A companion **web dashboard**, running on a USB-tethered laptop, mirrors the device's state in real time for observers — the same 12-segment ring, the same yellow button, the recipient's photo, the token stack, every error and warning — so an audience can follow exactly what the user is doing on a device that deliberately has no screen of its own.
 
+### Live dashboard
+
+The device has no screen. This mirror runs on a USB-tethered laptop so observers can follow the interaction.
+
+| Locked | Composing | Holding confirm | Complete |
+|---|---|---|---|
+| ![](docs/images/dashboard-locked.png) | ![](docs/images/dashboard-unlocked.png) | ![](docs/images/dashboard-holding.png) | ![](docs/images/dashboard-success.png) |
+
 ## How a transfer works
 
 The full state machine, including every error and cancellation path, is shown in the diagram at the top of this page. In brief:
@@ -92,7 +100,7 @@ Full protocol reference: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | 1.2 kΩ resistor | DFPlayer RX line | 1 |
 | Breadboard, jumper wires, USB-C cable | — | — |
 
-Approximate total cost: **under 5,000 BDT**. Full pinout and wiring in [docs/HARDWARE.md](docs/HARDWARE.md).
+Approximate total cost: **under 4,000 BDT**. Full pinout and wiring in [docs/HARDWARE.md](docs/HARDWARE.md).
 
 ## Repository layout
 
